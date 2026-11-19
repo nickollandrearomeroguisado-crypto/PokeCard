@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { getPokemon, getPokemonHeight, getPokemonWeight, getPokemonById, getPokemonWeaknesses, getPokemonboton} from "../api/pokemon.js";
 
 // // export default {
@@ -14,7 +14,7 @@ import { getPokemon, getPokemonHeight, getPokemonWeight, getPokemonById, getPoke
 // let pokemon = ref({})
 // let altura = ref(0)
 // let peso = ref(0)
-let pokemonId = ref([])
+// let pokemonId = ref([])
 // let weaknesses = ref([])
 
 
@@ -22,50 +22,50 @@ let pokemonId = ref([])
 //     pokemon.value = data
 // })
 
-onMounted(async () => { 
-  pokemon.value = await getPokemon("mankey") 
-  altura.value = await getPokemonHeight("mankey")
-  peso.value = await getPokemonWeight("mankey")
-  pokemonId.value = await getPokemonById("mankey")
-//   weaknesses.value = await getPokemonWeaknesses("mankey") 
-//debilidades de pokemon
-const tipos = pokemon.value.types.map(t => t.type.name)
-weaknesses.value = await getPokemonWeaknesses(tipos)
-  console.log(pokemon.value) 
-  console.log(altura.value)
-  console.log(peso.value)
-  console.log(pokemonId.value)
-  console.log(weaknesses.value)
-})
+// onMounted(async () => { 
+//   pokemon.value = await getPokemon("mankey") 
+//   altura.value = await getPokemonHeight("mankey")
+//   peso.value = await getPokemonWeight("mankey")
+//   pokemonId.value = await getPokemonById("mankey")
+// //   weaknesses.value = await getPokemonWeaknesses("mankey") 
+// //debilidades de pokemon
+// const tipos = pokemon.value.types.map(t => t.type.name)
+// weaknesses.value = await getPokemonWeaknesses(tipos)
+//   console.log(pokemon.value) 
+//   console.log(altura.value)
+//   console.log(peso.value)
+//   console.log(pokemonId.value)
+//   console.log(weaknesses.value)
+// })
 
 // const debilidades = ref([])
 
-// Diccionario de colores por tipo
-const coloresPorTipo = {
-  fuego: '#F08030',
-  agua: '#6890F0',
-  planta: '#78C850',
-  electrico: '#F8D030',
-  hielo: '#98D8D8',
-  lucha: '#C03028',
-  veneno: '#A040A0',
-  tierra: '#E0C068',
-  volador: '#A890F0',
-  psiquico: '#F85888',
-  bicho: '#A8B820',
-  roca: '#B8A038',
-  fantasma: '#705898',
-  dragon: '#7038F8',
-  siniestro: '#705848',
-  acero: '#B8B8D0',
-  hada: '#EE99AC',
-  normal: '#A8A878'
-}
+// // Diccionario de colores por tipo
+// const coloresPorTipo = {
+//   fuego: '#F08030',
+//   agua: '#6890F0',
+//   planta: '#78C850',
+//   electrico: '#F8D030',
+//   hielo: '#98D8D8',
+//   lucha: '#C03028',
+//   veneno: '#A040A0',
+//   tierra: '#E0C068',
+//   volador: '#A890F0',
+//   psiquico: '#F85888',
+//   bicho: '#A8B820',
+//   roca: '#B8A038',
+//   fantasma: '#705898',
+//   dragon: '#7038F8',
+//   siniestro: '#705848',
+//   acero: '#B8B8D0',
+//   hada: '#EE99AC',
+//   normal: '#A8A878'
+// }
 
-// Función para obtener el color o devolver uno por defecto
-const obtenerColor = (tipo) => {
-  return coloresPorTipo[tipo.toLowerCase()] || '#777777'
-}
+// // Función para obtener el color o devolver uno por defecto
+// const obtenerColor = (tipo) => {
+//   return coloresPorTipo[tipo.toLowerCase()] || '#777777'
+// }
 
 const pokemon = ref(null)
 const weaknesses = ref([])
@@ -102,18 +102,78 @@ function cambiarPokemon() {
 
 onMounted(() => cargarPokemon(idActual.value))
 
-// const obtenerColor = (tipo) => coloresPorTipo[tipo.toLowerCase()] || '#777777'
+const traduccion = {
+  fire: 'fuego', water: 'agua', grass: 'planta', electric: 'electrico',
+  ice: 'hielo', fighting: 'lucha', poison: 'veneno', ground: 'tierra',
+  flying: 'volador', psychic: 'psiquico', bug: 'bicho', rock: 'roca',
+  ghost: 'fantasma', dragon: 'dragon', dark: 'siniestro', steel: 'acero',
+  fairy: 'hada', normal: 'normal'
+}
+const traducir = (tipo) => traduccion[tipo] || tipo
 
+const coloresPorTipo = {
+  fuego: '#F08030', agua: '#6890F0', planta: '#78C850', electrico: '#F8D030',
+  hielo: '#98D8D8', lucha: '#C03028', veneno: '#A040A0', tierra: '#E0C068',
+  volador: '#A890F0', psiquico: '#F85888', bicho: '#A8B820', roca: '#B8A038',
+  fantasma: '#705898', dragon: '#7038F8', siniestro: '#705848',
+  acero: '#B8B8D0', hada: '#EE99AC', normal: '#A8A878'
+}
+
+const obtenerColor = (tipo) => coloresPorTipo[tipo.toLowerCase()] || '#777777'
+
+//cambiar de color segun el tipo de pokemon
+// Colores por tipo en inglés (los que devuelve la API)
+const colorPorTipoIngles = {
+  fire: '#F08030', water: '#6890F0', grass: '#78C850', electric: '#F8D030',
+  ice: '#98D8D8', fighting: '#C03028', poison: '#A040A0', ground: '#E0C068',
+  flying: '#A890F0', psychic: '#F85888', bug: '#A8B820', rock: '#B8A038',
+  ghost: '#705898', dragon: '#7038F8', dark: '#705848', steel: '#B8B8D0',
+  fairy: '#EE99AC', normal: '#A8A878'
+}
+
+// Color según el primer tipo del pokémon actual
+const colorPokemon = computed(() => {
+  const tipo = pokemon.value?.types?.[0]?.type?.name
+  return colorPorTipoIngles[tipo] || '#ff0000'
+})
+
+//para el fondo cambie segun su tipo
+// Lista de colores según los tipos del pokémon actual
+const coloresDelPokemon = computed(() => {
+  const tipos = pokemon.value?.types ?? []
+  return tipos.map(t => colorPorTipoIngles[t.type.name] || '#ff0000')
+})
+
+// // Se mantiene para la tarjeta, el botón y las barras (tipo principal)
+// const colorPokemon = computed(() => coloresDelPokemon.value[0] || '#ff0000')
+
+// Degradado del fondo
+const fondoDegradado = computed(() => {
+  const colores = coloresDelPokemon.value
+
+  if (colores.length >= 2) {
+    // 2 o más tipos: colores completos, sin transparencia
+    return `linear-gradient(to left, ${colores.join(', ')})`
+  }
+
+  // 1 solo tipo: color + parte transparente
+  const color = colores[0] || '#e68989'
+  return `linear-gradient(to left, transparent 0%, ${color} 70%)`
+})
+
+watch(fondoDegradado, (fondo) => {
+  document.documentElement.style.setProperty('--fondo', fondo)
+}, { immediate: true })
 </script>
 
 <template>
-    <main>
+    <main> 
         <img src="https://i.pinimg.com/736x/34/c1/e5/34c1e5d371d64a581b1902ec5c4509f4.jpg" width="280" height="210" class="imagen-p" />
 
         
         <section class="contenedor">
             
-            <div class="pokemon-card">
+            <div class="pokemon-card" :style="{ backgroundColor: colorPokemon }">
                 <h2 class="nombre-pokemon">{{ pokemon?.name }}</h2>
                 
                 <div class="informacion-pokemon">
@@ -127,28 +187,28 @@ onMounted(() => cargarPokemon(idActual.value))
             
             <div class="card_t_d">
                 <!-- <h1 class="titulo-pokemon">Pokémon</h1> -->
-                <p class="Id_pokemon"># {{ pokemon?.id }}</p>
+                <p class="Id_pokemon" , :style="{ color: colorPokemon }"># {{ pokemon?.id }}</p>
                 <h2 class="Tipos_p">Tipos del Pokemon</h2>
-                <p v-for="type in pokemon?.types" :key="type.slot" class="Tipos">
-                    {{ type.type.name }}
+                <p v-for="type in pokemon?.types" :key="type.slot" class="Tipos" :style="{ backgroundColor: colorPorTipoIngles[type.type.name] }">
+                    {{ traducir(type.type.name) }}
                 </p>
                 
                 <h2>Debilidades de Pokemon</h2>
                 
                 <div class="debilidades_p">
-                    <span v-for="weakness in weaknesses" 
+                    <!-- <span v-for="weakness in weaknesses" 
                     :key="weakness" 
                     class="debilidades">
                         {{ weakness }} 
-                    </span>
-                    <!-- <span
-                        v-for="(tipo, index) in debilidades"
-                        :key="index"
-                        class="debilidades"
-                        :style="{ backgroundColor: obtenerColor(tipo) }"
-                        >
-                        {{ tipo }} 
                     </span> -->
+                    <span
+                        v-for="tipo  in weaknesses"
+                        :key="tipo"
+                        class="debilidades"
+                        :style="{ backgroundColor: obtenerColor(traducir(tipo)) }"
+                        >
+                        {{ traducir(tipo) }} 
+                    </span>
             </div>
             
         </div>
@@ -162,7 +222,7 @@ onMounted(() => cargarPokemon(idActual.value))
                 <div class="barra-relleno">
                     <div
                     class="barra-carga"
-                    :style="{ width: (stat.base_stat / 255) * 100 + '%' }"
+                    :style="{ width: (stat.base_stat / 255) * 100 + '%' , backgroundColor: colorPokemon }"
                     ></div>
                 </div>
             </div>
@@ -170,7 +230,7 @@ onMounted(() => cargarPokemon(idActual.value))
     </section>
 
     <!--boton que cambia de pokemon-->
-    <button class="btn-cambiar" @click="cambiarPokemon" :disabled="cargando">
+    <button class="btn-cambiar" @click="cambiarPokemon" :disabled="cargando" :style="{ backgroundColor: colorPokemon }">
         Cambiar Pokémon
     </button>
     </main>
@@ -181,7 +241,8 @@ onMounted(() => cargarPokemon(idActual.value))
 @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Fruktur:ital@0;1&family=Italianno&family=Rock+Salt&display=swap');
 
 html{
-    background: linear-gradient(to left, transparent 0%, #e68989 70%);
+    background: var(--fondo, linear-gradient(to left, transparent 0%, #e68989 70%));
+    background-attachment: fixed;
     font-family: "Rock Salt", cursive;
     font-weight: 400;
     font-style: normal;
